@@ -94,16 +94,12 @@ void builder::append(string text) {
  *
  * This will also parse raw syntax tags
  */
-void builder::node(string str, bool add_space) {
+void builder::node(string str) {
   if (str.empty()) {
     return;
   }
 
   append(move(str));
-
-  if (add_space) {
-    space();
-  }
 }
 
 /**
@@ -111,16 +107,16 @@ void builder::node(string str, bool add_space) {
  *
  * \see builder::node
  */
-void builder::node(string str, int font_index, bool add_space) {
+void builder::node(string str, int font_index) {
   font(font_index);
-  node(move(str), add_space);
+  node(move(str));
   font_close();
 }
 
 /**
  * Insert tags for given label
  */
-void builder::node(const label_t& label, bool add_space) {
+void builder::node(const label_t& label) {
   if (!label || !*label) {
     return;
   }
@@ -149,7 +145,7 @@ void builder::node(const label_t& label, bool add_space) {
     space(label->m_padding.left);
   }
 
-  node(text, label->m_font, add_space);
+  node(text, label->m_font);
 
   if (label->m_padding.right > 0) {
     space(label->m_padding.right);
@@ -177,19 +173,19 @@ void builder::node(const label_t& label, bool add_space) {
 /**
  * Repeat text string n times
  */
-void builder::node_repeat(const string& str, size_t n, bool add_space) {
+void builder::node_repeat(const string& str, size_t n) {
   string text;
   text.reserve(str.size() * n);
   while (n--) {
     text += str;
   }
-  node(text, add_space);
+  node(text);
 }
 
 /**
  * Repeat label contents n times
  */
-void builder::node_repeat(const label_t& label, size_t n, bool add_space) {
+void builder::node_repeat(const label_t& label, size_t n) {
   string text;
   string label_text{label->get()};
   text.reserve(label_text.size() * n);
@@ -198,7 +194,7 @@ void builder::node_repeat(const label_t& label, size_t n, bool add_space) {
   }
   label_t tmp{new label_t::element_type{text}};
   tmp->replace_defined_values(label);
-  node(tmp, add_space);
+  node(tmp);
 }
 
 /**
@@ -433,8 +429,8 @@ void builder::control(controltag tag) {
 /**
  * Open command tag
  */
-void builder::cmd(mousebtn index, string action, bool condition) {
-  if (condition && !action.empty()) {
+void builder::cmd(mousebtn index, string action) {
+  if (!action.empty()) {
     action = string_util::replace_all(action, ":", "\\:");
     tag_open(syntaxtag::A, to_string(static_cast<int>(index)) + ":" + action + ":");
   }
@@ -445,7 +441,7 @@ void builder::cmd(mousebtn index, string action, bool condition) {
  */
 void builder::cmd(mousebtn index, string action, const label_t& label) {
   if (label && *label) {
-    cmd(index, action, true);
+    cmd(index, action);
     node(label);
     tag_close(syntaxtag::A);
   }
@@ -454,10 +450,8 @@ void builder::cmd(mousebtn index, string action, const label_t& label) {
 /**
  * Close command tag
  */
-void builder::cmd_close(bool condition) {
-  if (condition) {
-    tag_close(syntaxtag::A);
-  }
+void builder::cmd_close() {
+  tag_close(syntaxtag::A);
 }
 
 /**
